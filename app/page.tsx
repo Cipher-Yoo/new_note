@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { Chatbot } from "@/components/Chatbot"
 
 // 定义笔记类型
 type Note = {
@@ -127,6 +128,9 @@ export default function HomePage() {
   // 搜索状态
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
+
+  // 上下文
+  const [context, setContext] = useState<string>('')
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -330,10 +334,20 @@ export default function HomePage() {
     router.push(`/edit/${noteId}`)
   }
 
+  useEffect(() => {
+    // 当数据加载完成后，生成上下文
+    if (notes.length > 0) {
+      const contextString = notes.map(note => 
+        `标题：${note.title}\n内容：${note.content}\n标签：${note.tags.join(', ')}\n`
+      ).join('\n');
+      setContext(contextString);
+    }
+  }, [notes]);
+
   return (
-    <div className="flex h-screen bg-white text-gray-900">
+    <div className="flex h-screen bg-white dark:bg-gray-900">
       {/* Left Sidebar */}
-      <div className="w-64 border-r flex flex-col">
+      <div className="w-64 border-r flex flex-col bg-white dark:bg-gray-800">
         <div className="p-4 border-b">
           <h1 className="text-lg font-medium mb-4">笔记本</h1>
           <CustomButton onClick={createNewNote} className="w-full py-2 px-4 text-sm font-medium">
@@ -459,9 +473,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Main Content - Notes Grid */}
-      <div className="flex-1 flex flex-col">
-        <div className="p-4 border-b flex items-center justify-between">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="p-4 border-b bg-white dark:bg-gray-800">
           <h2 className="text-lg font-medium">
             {activeFilter
               ? activeFilter.startsWith("tag:")
@@ -471,11 +485,6 @@ export default function HomePage() {
                 ? `搜索: ${searchQuery}`
                 : "所有笔记"}
           </h2>
-          {(activeFilter || searchQuery) && (
-            <button onClick={clearFilter} className="p-1 rounded-full hover:bg-gray-100">
-              <X className="h-4 w-4" />
-            </button>
-          )}
         </div>
 
         <div className="flex-1 overflow-auto p-6">
@@ -536,7 +545,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 提示消息 */}
+      <Chatbot context={context} />
       <Toaster />
     </div>
   )

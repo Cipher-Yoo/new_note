@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Usable } from "react"
+import { Chatbot } from "@/components/Chatbot"
 
 // 定义笔记类型
 type Note = {
@@ -103,6 +104,8 @@ export default function EditPage({ params }: { params: Usable<{ id: string }> })
   // 自动保存计时器
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
   const [lastSaved, setLastSaved] = useState<string | null>(null)
+
+  const [context, setContext] = useState<string>('');
 
   // 从localStorage加载数据
   useEffect(() => {
@@ -438,6 +441,14 @@ export default function EditPage({ params }: { params: Usable<{ id: string }> })
     console.log('标签系统更新完成')
   }
 
+  useEffect(() => {
+    // 当笔记加载完成后，生成上下文
+    if (editingNote) {
+      const contextString = `标题：${editingNote.title}\n内容：${editingNote.content}\n标签：${editingNote.tags.join(', ')}`;
+      setContext(contextString);
+    }
+  }, [editingNote]);
+
   if (!editingNote) {
     return <div className="flex items-center justify-center h-screen">加载中...</div>
   }
@@ -599,6 +610,8 @@ export default function EditPage({ params }: { params: Usable<{ id: string }> })
 
       {/* 提示消息 */}
       <Toaster />
+
+      <Chatbot context={context} />
     </div>
   )
 }
